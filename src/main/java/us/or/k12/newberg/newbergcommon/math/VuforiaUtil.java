@@ -5,7 +5,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 
 public class VuforiaUtil
 {
-    public VectorF NavOffWall(VectorF trans, double robotAngle, VectorF offWall)
+    public static VectorF NavOffWall(VectorF trans, double robotAngle, VectorF offWall)
     {
         return new VectorF((float) (trans.get(0) - offWall.get(0) * Math.sin(Math.toRadians(robotAngle))
                 - offWall.get(2) * Math.cos(Math.toRadians(robotAngle))), trans.get(1),
@@ -13,7 +13,7 @@ public class VuforiaUtil
                         * Math.sin(Math.toRadians(robotAngle))));
     }
 
-    public VectorF AnglesFromTarget(VuforiaTrackableDefaultListener image)
+    public static VectorF AnglesFromTarget(VuforiaTrackableDefaultListener image)
     {
         float [] data = image.getRawPose().getData();
         float [] [] rotation = {{data[0], data[1]}, {data[4], data[5], data[6]}, {data[8], data[9], data[10]}};
