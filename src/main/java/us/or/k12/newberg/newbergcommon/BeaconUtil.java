@@ -1,7 +1,12 @@
 package us.or.k12.newberg.newbergcommon;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
+import android.widget.ImageView;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.RobotLog;
 import com.vuforia.CameraCalibration;
 import com.vuforia.Image;
 import com.vuforia.Matrix34F;
@@ -21,12 +26,16 @@ import org.opencv.imgproc.Moments;
 
 import java.util.Arrays;
 
+import static us.or.k12.newberg.newbergcommon.math.MathUtil.Roundf;
+
 public class BeaconUtil
 {
+    public static final String TAG = "BeaconUtil";
+
     public static Scalar blueLow = new Scalar(100, 0, 220);
     public static Scalar blueHigh = new Scalar(178, 255, 255);
 
-    public static enum BeaconStatus
+    public enum BeaconStatus
     {
         BEACON_NOT_VISIBLE,
         // Left is red, right is blue
@@ -59,9 +68,9 @@ public class BeaconUtil
         // Top right
         beaconCornersInImage[1] = Tool.projectPoint(cameraCalibration, rawPose, new Vec3F(127, 276, 0)).getData();
         // Bot right
-        beaconCornersInImage[2] = Tool.projectPoint(cameraCalibration, rawPose, new Vec3F(127, 92, 0)).getData();
+        beaconCornersInImage[2] = Tool.projectPoint(cameraCalibration, rawPose, new Vec3F(127, -92, 0)).getData();
         // Bot left
-        beaconCornersInImage[3] = Tool.projectPoint(cameraCalibration, rawPose, new Vec3F(-127, 92, 0)).getData();
+        beaconCornersInImage[3] = Tool.projectPoint(cameraCalibration, rawPose, new Vec3F(-127, -92, 0)).getData();
 
         final Bitmap bm = Bitmap.createBitmap(img.getWidth(), img.getHeight(), Bitmap.Config.RGB_565);
         bm.copyPixelsFromBuffer(img.getPixels());
@@ -73,7 +82,6 @@ public class BeaconUtil
                 Math.min(beaconCornersInImage[0][0], beaconCornersInImage[2][0]));
         float y = Math.min(Math.min(beaconCornersInImage[1][1], beaconCornersInImage[3][1]),
                 Math.min(beaconCornersInImage[0][1], beaconCornersInImage[2][1]));
-
         float width = Math.max(Math.abs(beaconCornersInImage[0][0] - beaconCornersInImage[2][0]),
                 Math.abs(beaconCornersInImage[1][0] - beaconCornersInImage[3][0]));
         float height = Math.max(Math.abs(beaconCornersInImage[0][1] - beaconCornersInImage[2][1]),
@@ -82,10 +90,10 @@ public class BeaconUtil
         x = Math.max(x, 0);
         y = Math.max(y, 0);
 
-        width = (x + width > crop.cols()) ? crop.cols() - width : width;
-        height = (y + height > crop.rows()) ? crop.rows() - height : height;
+        width = (x + width > crop.cols()) ? crop.cols() - x : width;
+        height = (y + height > crop.rows()) ? crop.rows() - y : height;
 
-        Mat cropped = new Mat(crop, new Rect((int) x, (int) y,  (int) width, (int) height));
+        final Mat cropped = new Mat(crop, new Rect(Roundf(x), Roundf(y),  Roundf(width), Roundf(height)));
         Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_RGB2HSV_FULL);
 
         Mat mask = new Mat();
@@ -93,22 +101,25 @@ public class BeaconUtil
 
         Moments mnts = Imgproc.moments(mask, true);
 
-        if ((mnts.get_m00() / mask.total()) > 0.8)
+        RobotLog.i("00: " + String.valueOf(mnts.get_m00()));
+        RobotLog.i("Total: " + mask.total());
+
+        if (mnts.get_m00() >= mask.total() * 0.5)
         {
             return BeaconStatus.BEACON_ALL_BLUE;
         }
-        else if ((mnts.get_m00() / mask.total()) < 0.1)
+        else if (mnts.get_m00() < mask.total() * 0.1)
         {
             return BeaconStatus.BEACON_NO_BLUE;
         }
 
         if ((mnts.get_m01() / mnts.get_m00()) < cropped.rows() / 2)
         {
-            return BeaconStatus.BEACON_RED_BLUE;
+            return BeaconStatus.BEACON_BLUE_RED;
         }
         else
         {
-            return BeaconStatus.BEACON_BLUE_RED;
+            return BeaconStatus.BEACON_RED_BLUE;
         }
     }
 }

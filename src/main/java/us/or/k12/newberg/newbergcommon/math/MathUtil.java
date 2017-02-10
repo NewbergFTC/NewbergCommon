@@ -36,4 +36,29 @@ public class MathUtil
 
         return result;
     }
+
+    public static int Roundf(float val)
+    {
+        int result = (int)(val + 0.5f);
+
+        return result;
+    }
+
+    public static double Range(double... values)
+    {
+        double max = 0;
+
+        for (int i = 0; i < values.length; ++i)
+        {
+            for (int j = i + 1; j < values.length; ++j)
+            {
+                if (max < Math.abs(values[i] - values[j]))
+                {
+                    max = Math.abs(values[i] - values[j]);
+                }
+            }
+        }
+
+        return max;
+    }
 }
