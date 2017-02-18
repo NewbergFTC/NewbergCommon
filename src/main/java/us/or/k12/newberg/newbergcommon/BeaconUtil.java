@@ -104,7 +104,7 @@ public class BeaconUtil
         RobotLog.i("00: " + String.valueOf(mnts.get_m00()));
         RobotLog.i("Total: " + mask.total());
 
-        if (mnts.get_m00() >= mask.total() * 0.5)
+        if (mnts.get_m00() >= mask.total() * 0.4)
         {
             return BeaconStatus.BEACON_ALL_BLUE;
         }
@@ -115,11 +115,11 @@ public class BeaconUtil
 
         if ((mnts.get_m01() / mnts.get_m00()) < cropped.rows() / 2)
         {
-            return BeaconStatus.BEACON_BLUE_RED;
+            return BeaconStatus.BEACON_RED_BLUE;
         }
         else
         {
-            return BeaconStatus.BEACON_RED_BLUE;
+            return BeaconStatus.BEACON_BLUE_RED;
         }
     }
 }
